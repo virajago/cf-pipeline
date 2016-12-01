@@ -1,0 +1,5 @@
+---
+applications:
+  - name: usersdemo-vj-uat
+    env:
+      GOPACKAGENAME: zfu.zb/usersdemo

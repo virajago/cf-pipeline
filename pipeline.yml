@@ -1,0 +1,54 @@
+resources:
+- name: app-usersdemo
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/virajago/zfu.zb.git
+- name: pipeline-cf
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/virajago/cf-pipeline
+- name: cftest
+  type: cf
+  source:
+    api: {{pws-api}}
+    organization: {{pws-organization}}
+    username: {{deploy-username}}
+    password: {{deploy-password}}
+    skip_cert_check: false
+    space: {{pws-test-space}}
+- name: cfuat
+  type: cf
+  source:
+    api: {{pws-api}}
+    organization: {{pws-organization}}
+    username: {{deploy-username}}
+    password: {{deploy-password}}
+    skip_cert_check: false
+    space: {{pws-uat-space}}
+
+jobs:
+- name: deploy-test
+  serial: true
+  plan:
+  - get: app-usersdemo
+    trigger: true
+  - get: pipeline-cf
+    trigger: true
+  - put: test
+    params:
+      manifest: pipeline-cf/cf-pipeline/manifests/cf-test.yml
+      path: pipeline-cf
+      current_app_name: usersdemo-vj-test
+- name: deploy-uat
+  plan:
+  - get: usersdemo
+    trigger: false
+    passed:
+      - deploy-test
+  - put: uat
+    params:
+      manifest: pipeline-cf/cf-pipeline/manifests/cf-uat.yml
+      path: pipeline-cf
+      current_app_name: usersdemo-vj-uat
